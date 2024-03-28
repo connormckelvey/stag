@@ -1,4 +1,4 @@
-package tagram
+package stag
 
 import (
 	"errors"
@@ -97,17 +97,21 @@ func parsePrimitive(literal string, target any) error {
 		}
 		*v = b
 	default:
-		return errors.New("unsupported primitive")
+		return fmt.Errorf("unsupported primitive: lit: %s", literal)
 	}
 	return nil
 }
 
 func parseInto(token string, targetFieldValue reflect.Value) error {
-	dst := targetFieldValue.Addr().Interface()
+	if targetFieldValue.Kind() == reflect.Pointer {
+		init := reflect.New(targetFieldValue.Type().Elem())
+		targetFieldValue.Set(init)
+		return parseInto(token, targetFieldValue.Elem())
+	}
 
+	dst := targetFieldValue.Addr().Interface()
 	switch targetFieldValue.Kind() {
 	case reflect.Slice:
-		// a;b;c
 		items := strings.Split(token, ";")
 		var values []reflect.Value
 		se := targetFieldValue.Type().Elem()
@@ -141,8 +145,4 @@ func requireStruct(aStruct any) (reflect.Type, error) {
 		return nil, errors.New("provided value not a struct type")
 	}
 	return structType, nil
-}
-
-func identity[T any]() (id T) {
-	return
 }

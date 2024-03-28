@@ -1,17 +1,20 @@
-# TaGram - Declarative Struct Tag Parser Generator
+![stag logo](assets/stag.png)
 
-TaGram is an open-source Go library designed to simplify the parsing of struct tags by generating a parser based on a declarative grammar. TaGram allows developers to define the structure and rules for parsing directly within their Go structs, streamlining the development process.
+Stag is an open-source Go library designed to simplify the parsing of struct tags by generating a parser based on a declarative grammar.
+
+[![](https://github.com/connormckelvey/stag/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/connormckelvey/stag/actions?query=workflow%3ATest)
+
 
 ## Get Started
 
 ### Install
 ```bash
-go get github.com/connormckelvey/tagram
+go get github.com/connormckelvey/stag
 ```
 
 ### Import
 ```go
-import "github.com/connormckelvey/tagram"
+import "github.com/connormckelvey/stag"
 ```
 
 ### Define grammar
@@ -25,7 +28,7 @@ type CliFlagGrammar struct {
 
 ### Generate parser
 ```go
-var FlagParser = tagram.MustGenerate[CliFlagGrammar]()
+var FlagParser = stag.MustGenerate(CliFlagGrammar{})
 ```
 
 ### Parse
@@ -33,13 +36,18 @@ var FlagParser = tagram.MustGenerate[CliFlagGrammar]()
 type MyFlags struct {
     Props   any `flag:"props,p,Load the props file"`
     Include any `flag:"include,i,Specify file or glob"`
-    Beep    any `flag.usage:"wow" flag.aliases:"foo;bar"`
 }
 
-result, err := FlagParser.Parse(MyFlags{})
+results, err := FlagParser.Parse(MyFlags{})
 if err != nil {
     panic(err)
 }
 
-spew.Dump(result)
+
+// output:
+// {Name:props Aliases:[p] Usage:Load the props file}
+// {Name:include Aliases:[i] Usage:Specify file or glob}
+for _, tagValues := range results {
+    fmt.Printf("%+v\n", tagValues)
+}
 ```

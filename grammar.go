@@ -1,4 +1,4 @@
-package tagram
+package stag
 
 import (
 	"reflect"
@@ -34,6 +34,7 @@ func parsePosition(pctx *parseContext, literal string, target *rule) error {
 	switch literal {
 	case "":
 		target.PositionType = positionTypeEmpty
+		target.Position = -1
 	case "_":
 		target.PositionType = positionTypeInferred
 		target.Position = pctx.Field.Index[0]
@@ -49,7 +50,12 @@ func parseKeys(pctx *parseContext, literal string, target *rule) error {
 	return nil
 }
 
-func parseGrammar(structType reflect.Type) (results []*rule, err error) {
+func parseGrammar(grammar any) (results []*rule, err error) {
+	structType, err := requireStruct(grammar)
+	if err != nil {
+		return nil, err
+	}
+
 	parsers := []parseFunc{parseNamespace, parsePosition, parseKeys}
 	for i := 0; i < structType.NumField(); i++ {
 		fieldType := structType.Field(i)
